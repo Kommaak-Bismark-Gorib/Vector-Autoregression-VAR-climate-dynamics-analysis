@@ -279,100 +279,182 @@ accuracy under changing climate conditions.
 
 # R Code
 library(readxl)
+
 CRDProjectwork <- read_excel("CRDProjectwork.xlsx")
+
 View(CRDProjectwork)
+
 ######################## paCKAGES REQUIRED
+
 library(vars)### For estimating var models
+
 library(tseries)### Time series
+
 library(tidyverse)### Collecting of packages
+
 library(stargazer)### For creating tables 
+
 library(ggplot2)
+
 library(forecast)
+
 library(imputeTS)### Handling Missing Values
+
 CRDprojectworkts<- na.interpolation(CRDProjectwork)
+
 CRDprojectworkts
+
 plot(CRDprojectworkts)
+
 ############## Converting the data into Time Series Data
+
 Averagets<- ts(CRDProjectwork$rainfall,start = c(2019,1),frequency = 12)
+
 Wetdaysts<- ts(CRDProjectwork$wetness,start = c(2019,1),frequency = 12)
+
 #### checking for individaul Unit Root text
+
 Averagets
+
 Wetdaysts
+
 autoplot(Averagets)
+
 autoplot(Wetdaysts)
+
 acf(Averagets)
+
 pacf(Averagets)
+
 acf(Wetdaysts)
+
 pacf(Wetdaysts)
+
 adfaverage<- adf.test(Averagets)
+
 adfaverage
+
 adfwetdays<-adf.test(Wetdaysts)
+
 adfwetdays
+
 ppaverage<-pp.test(Averagets)
+
 ppaverage
+
 ppwetdays<- pp.test(Wetdaysts)
+
 ppwetdays
+
 kpss.test(Averagets)
+
 kpss.test(Wetdaysts)
+
 ############# Putting together the dataset
 
 combinets<- cbind(Averagets,Wetdaysts)
+
 combinets
+
 summary(combinets)
+
 ndiffs(combinets)
+
 autoplot(combinets,main= "Average Rainfall and Wetness",xlab = "VAR plot",ylab ="Time" )
+
 firstdiff<-diff(combinets)
+
 firstdiff
+
 seconddiff<-diff(firstdiff)
+
 seconddiff
+
 autoplot(firstdiff)
+
 autoplot(seconddiff)
+
 ndiffs(combinets)
+
 Acf(combinets,col='maroon', main = 'figure 1.1')
 
+
 Pacf(combinets,col='maroon',main = 'figure 1.2')
+
 #### Optimal lag lenght
+
 laglenght<-VARselect(combinets,lag.max = 10)
+
 laglenght
+
 ##### Checking for residuals
+
 residualsts<-(laglenght)
+
 laglenght
+
 #### Estimation of VAR
+
 estimts<- VAR(combinets,p=6,type = 'none')
+
 estimts
+
 summary(estimts)
 
+
 #### stargazer
+
 stargazer(estimts[["varresults"]],type = 'text')
+
 ######## Check for stable model
+
 roots(estimts,modulus = TRUE)
 
 
 ##### Granger causality test
+
 grangerAveragets <-causality(estimts,cause = "Averagets")
+
 grangerAveragets
+
 grangerAveragets$Granger
+
 grangerWetdays <-causality(estimts,cause = "Wetdaysts")
+
 grangerWetdays
+
 grangerWetdays$Granger
+
 #### IRFs; 
 
 #### Wetdaysts response to Averagets shock
+
 irf1<-irf(estimts,impulse = "Averagets",response = "Wetdaysts",n.ahead = 50, boot = TRUE,runs = 300,ci=0.95)
+
 irf1
+
 plot(irf1,xlab="Wetdaysts",main="Wetdaysts response to Averagets shock")
 
+
 #### Averagets response to Wetdaysts shock
+
 irf2<-irf(estimts,impulse = "Wetdaysts",response = "Averagets",n.ahead = 50, boot = TRUE,runs = 300,ci=0.95)
+
 irf2
+
 plot(irf2,xlab="Averagets",main="Averagets response to Wetdaysts shock")
 
+
 #### VAriance Decompositions
+
 vdts<- fevd(estimts,n.ahead = 50)
+
 plot(vdts)
 
 forecastts<- predict(estimts,n.ahead = 12,ci=95)
+
 forecastts
+
 plot(forecastts)
 
 
@@ -389,10 +471,12 @@ Reference
 L¨utkepohl, H., 2005. New Introduction to Multiple Time Series
 Analysis. Berlin: Springer.
 https://doi.org/10.1007/978-3-540-27752-1
+
 Tesfaye, K. and Walker, S., 2004. Matching of crop and environment
 for optimal water use: the case of Ethiopia. Physics and Chemistry of
 the Earth, Parts a/b/c, 29(15-18), pp.1061-1067.
 https://doi.org/10.1016/j.pce.2004.09.024
+
 Sims, C.A., 1980. Macroeconomics and reality. Econometrica, 48(1),
 pp.1-48.
 https://doi.org/10.2307/1912017
